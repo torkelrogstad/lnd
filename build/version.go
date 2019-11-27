@@ -48,6 +48,12 @@ func Version() string {
 	// Append commit hash of current build to version.
 	version = fmt.Sprintf("%s commit=%s", version, Commit)
 
+	// If built with any tags, append to version
+	tags := Tags()
+	if len(tags) != 0 {
+		version = fmt.Sprintf("%s tags=%s", version, strings.Join(tags, ","))
+	}
+
 	return version
 }
 
