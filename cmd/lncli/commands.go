@@ -1135,10 +1135,12 @@ var createCommand = cli.Command{
 			Name: "multi_backup",
 			Usage: "a hex encoded multi-channel backup obtained " +
 				"from exportchanbackup",
+			TakesFile: true,
 		},
 		cli.StringFlag{
-			Name:  "multi_file",
-			Usage: "the path to a multi-channel back up file",
+			Name:      "multi_file",
+			Usage:     "the path to a multi-channel back up file",
+			TakesFile: true,
 		},
 	},
 	Action: actionDecorator(create),
@@ -2966,8 +2968,9 @@ var verifyChanBackupCommand = cli.Command{
 				"from exportchanbackup",
 		},
 		cli.StringFlag{
-			Name:  "multi_file",
-			Usage: "the path to a multi-channel back up file",
+			Name:      "multi_file",
+			Usage:     "the path to a multi-channel back up file",
+			TakesFile: true,
 		},
 	},
 	Action: actionDecorator(verifyChanBackup),
@@ -3048,8 +3051,9 @@ var restoreChanBackupCommand = cli.Command{
 				"from exportchanbackup",
 		},
 		cli.StringFlag{
-			Name:  "multi_file",
-			Usage: "the path to a multi-channel back up file",
+			Name:      "multi_file",
+			Usage:     "the path to a multi-channel back up file",
+			TakesFile: true,
 		},
 	},
 	Action: actionDecorator(restoreChanBackup),
