@@ -305,6 +305,7 @@ func main() {
 		bakeMacaroonCommand,
 		trackPaymentCommand,
 		versionCommand,
+		fishCompletionCommand,
 	}
 
 	// Add any extra commands determined by build flags.
