@@ -131,7 +131,7 @@ func (h *HarnessMiner) saveLogs() error {
 // waitForTxInMempool blocks until the target txid is seen in the mempool. If
 // the transaction isn't seen within the network before the passed timeout,
 // then an error is returned.
-func (h *HarnessMiner) waitForTxInMempool(txid chainhash.Hash) error {
+func (h *HarnessMiner) WaitForTxInMempool(txid chainhash.Hash) error {
 	ticker := time.NewTicker(50 * time.Millisecond)
 	defer ticker.Stop()
 

@@ -1295,7 +1295,7 @@ func (n *NetworkHarness) CloseChannel(lnNode *HarnessNode,
 			return fmt.Errorf("unable to decode closeTxid: "+
 				"%v", err)
 		}
-		if err := n.Miner.waitForTxInMempool(*closeTxid); err != nil {
+		if err := n.Miner.WaitForTxInMempool(*closeTxid); err != nil {
 			return fmt.Errorf("error while waiting for "+
 				"broadcast tx: %v", err)
 		}
