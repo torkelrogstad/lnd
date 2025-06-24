@@ -49,6 +49,7 @@ var (
 		0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
 	}
 
+	testNonUTF8Str      = "1 cup coffee\xff\xfe\xfd"
 	testEmptyString     = ""
 	testCupOfCoffee     = "1 cup coffee"
 	testCoffeeBeans     = "coffee beans"
