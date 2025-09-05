@@ -11,21 +11,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/wire"
-	"github.com/btcsuite/btcutil"
-	"github.com/lightningnetwork/lnd/lnwire"
-
-	litecoinCfg "github.com/ltcsuite/ltcd/chaincfg"
 )
 
 var (
-	testMillisat24BTC    = lnwire.MilliSatoshi(2400000000000)
-	testMillisat2500uBTC = lnwire.MilliSatoshi(250000000)
-	testMillisat25mBTC   = lnwire.MilliSatoshi(2500000000)
-	testMillisat20mBTC   = lnwire.MilliSatoshi(2000000000)
+	testMillisat24BTC    = MilliSatoshi(2400000000000)
+	testMillisat2500uBTC = MilliSatoshi(250000000)
+	testMillisat25mBTC   = MilliSatoshi(2500000000)
+	testMillisat20mBTC   = MilliSatoshi(2000000000)
 
 	testPaymentHashSlice, _ = hex.DecodeString("0001020304050607080900010203040506070809000102030405060708090102")
 
@@ -36,7 +33,7 @@ var (
 	testPleaseConsider = "Please consider supporting this project"
 
 	testPrivKeyBytes, _     = hex.DecodeString("e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734")
-	testPrivKey, testPubKey = btcec.PrivKeyFromBytes(btcec.S256(), testPrivKeyBytes)
+	testPrivKey, testPubKey = btcec.PrivKeyFromBytes(testPrivKeyBytes)
 
 	testDescriptionHashSlice = chainhash.HashB([]byte("One piece of chocolate cake, one icecream cone, one pickle, one slice of swiss cheese, one slice of salami, one lollypop, one piece of cherry pie, one sausage, one cupcake, and one slice of watermelon"))
 
@@ -50,9 +47,9 @@ var (
 	testAddrMainnetP2WSH, _  = btcutil.DecodeAddress("bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3", &chaincfg.MainNetParams)
 
 	testHopHintPubkeyBytes1, _ = hex.DecodeString("029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255")
-	testHopHintPubkey1, _      = btcec.ParsePubKey(testHopHintPubkeyBytes1, btcec.S256())
+	testHopHintPubkey1, _      = btcec.ParsePubKey(testHopHintPubkeyBytes1)
 	testHopHintPubkeyBytes2, _ = hex.DecodeString("039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255")
-	testHopHintPubkey2, _      = btcec.ParsePubKey(testHopHintPubkeyBytes2, btcec.S256())
+	testHopHintPubkey2, _      = btcec.ParsePubKey(testHopHintPubkeyBytes2)
 
 	testSingleHop = []HopHint{
 		{
@@ -82,8 +79,7 @@ var (
 
 	testMessageSigner = MessageSigner{
 		SignCompact: func(hash []byte) ([]byte, error) {
-			sig, err := btcec.SignCompact(btcec.S256(),
-				testPrivKey, hash, true)
+			sig, err := ecdsa.SignCompact(testPrivKey, hash, true)
 			if err != nil {
 				return nil, fmt.Errorf("can't sign the "+
 					"message: %v", err)
@@ -95,24 +91,11 @@ var (
 	// Must be initialized in init().
 	testPaymentHash     [32]byte
 	testDescriptionHash [32]byte
-
-	ltcTestNetParams chaincfg.Params
-	ltcMainNetParams chaincfg.Params
 )
 
 func init() {
 	copy(testPaymentHash[:], testPaymentHashSlice[:])
 	copy(testDescriptionHash[:], testDescriptionHashSlice[:])
-
-	// Initialize litecoin testnet and mainnet params by applying key fields
-	// to copies of bitcoin params.
-	// TODO(sangaman): create an interface for chaincfg.params
-	ltcTestNetParams = chaincfg.TestNet3Params
-	ltcTestNetParams.Net = wire.BitcoinNet(litecoinCfg.TestNet4Params.Net)
-	ltcTestNetParams.Bech32HRPSegwit = litecoinCfg.TestNet4Params.Bech32HRPSegwit
-	ltcMainNetParams = chaincfg.MainNetParams
-	ltcMainNetParams.Net = wire.BitcoinNet(litecoinCfg.MainNetParams.Net)
-	ltcMainNetParams.Bech32HRPSegwit = litecoinCfg.MainNetParams.Bech32HRPSegwit
 }
 
 // TestDecodeEncode tests that an encoded invoice gets decoded into the expected
@@ -483,8 +466,8 @@ func TestDecodeEncode(t *testing.T) {
 					PaymentHash: &testPaymentHash,
 					Description: &testCoffeeBeans,
 					Destination: testPubKey,
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(1, 9),
+					Features: NewFeatureVector(
+						NewRawFeatureVector(1, 9),
 						InvoiceFeatures,
 					),
 				}
@@ -510,8 +493,8 @@ func TestDecodeEncode(t *testing.T) {
 					PaymentHash: &testPaymentHash,
 					Description: &testCoffeeBeans,
 					Destination: testPubKey,
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(1, 9, 100),
+					Features: NewFeatureVector(
+						NewRawFeatureVector(1, 9, 100),
 						InvoiceFeatures,
 					),
 				}
@@ -601,37 +584,6 @@ func TestDecodeEncode(t *testing.T) {
 				}
 			},
 			skipEncoding: true, // Skip encoding since we were given the wrong net
-		},
-		{
-			// Decode a litecoin testnet invoice
-			encodedInvoice: "lntltc241pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqsnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66m2eq2fx9uctzkmj30meaghyskkgsd6geap5qg9j2ae444z24a4p8xg3a6g73p8l7d689vtrlgzj0wyx2h6atq8dfty7wmkt4frx9g9sp730h5a",
-			valid:          true,
-			decodedInvoice: func() *Invoice {
-				return &Invoice{
-					// TODO(sangaman): create an interface for chaincfg.params
-					Net:             &ltcTestNetParams,
-					MilliSat:        &testMillisat24BTC,
-					Timestamp:       time.Unix(1496314658, 0),
-					PaymentHash:     &testPaymentHash,
-					DescriptionHash: &testDescriptionHash,
-					Destination:     testPubKey,
-				}
-			},
-		},
-		{
-			// Decode a litecoin mainnet invoice
-			encodedInvoice: "lnltc241pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqsnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66859t2d55efrxdlgqg9hdqskfstdmyssdw4fjc8qdl522ct885pqk7acn2aczh0jeht0xhuhnkmm3h0qsrxedlwm9x86787zzn4qwwwcpjkl3t2",
-			valid:          true,
-			decodedInvoice: func() *Invoice {
-				return &Invoice{
-					Net:             &ltcMainNetParams,
-					MilliSat:        &testMillisat24BTC,
-					Timestamp:       time.Unix(1496314658, 0),
-					PaymentHash:     &testPaymentHash,
-					DescriptionHash: &testDescriptionHash,
-					Destination:     testPubKey,
-				}
-			},
 		},
 	}
 
@@ -765,30 +717,6 @@ func TestNewInvoice(t *testing.T) {
 			valid:          true,
 			encodedInvoice: "lnbcrt241pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdqqnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66df5c8pqjjt4z4ymmuaxfx8eh5v7hmzs3wrfas8m2sz5qz56rw2lxy8mmgm4xln0ha26qkw6u3vhu22pss2udugr9g74c3x20slpcqjgq0el4h6",
 		},
-		{
-			// Create a litecoin testnet invoice
-			newInvoice: func() (*Invoice, error) {
-				return NewInvoice(&ltcTestNetParams,
-					testPaymentHash, time.Unix(1496314658, 0),
-					Amount(testMillisat24BTC),
-					DescriptionHash(testDescriptionHash),
-					Destination(testPubKey))
-			},
-			valid:          true,
-			encodedInvoice: "lntltc241pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqsnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66m2eq2fx9uctzkmj30meaghyskkgsd6geap5qg9j2ae444z24a4p8xg3a6g73p8l7d689vtrlgzj0wyx2h6atq8dfty7wmkt4frx9g9sp730h5a",
-		},
-		{
-			// Create a litecoin mainnet invoice
-			newInvoice: func() (*Invoice, error) {
-				return NewInvoice(&ltcMainNetParams,
-					testPaymentHash, time.Unix(1496314658, 0),
-					Amount(testMillisat24BTC),
-					DescriptionHash(testDescriptionHash),
-					Destination(testPubKey))
-			},
-			valid:          true,
-			encodedInvoice: "lnltc241pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqsnp4q0n326hr8v9zprg8gsvezcch06gfaqqhde2aj730yg0durunfhv66859t2d55efrxdlgqg9hdqskfstdmyssdw4fjc8qdl522ct885pqk7acn2aczh0jeht0xhuhnkmm3h0qsrxedlwm9x86787zzn4qwwwcpjkl3t2",
-		},
 	}
 
 	for i, test := range tests {
@@ -871,7 +799,7 @@ func compareInvoices(expected, actual *Invoice) error {
 
 	if !comparePubkeys(expected.Destination, actual.Destination) {
 		return fmt.Errorf("expected destination pubkey %x, got %x",
-			expected.Destination, actual.Destination)
+			expected.Destination.SerializeCompressed(), actual.Destination.SerializeCompressed())
 	}
 
 	if !compareHashes(expected.DescriptionHash, actual.DescriptionHash) {
@@ -944,7 +872,7 @@ func compareRouteHints(a, b []HopHint) error {
 	for i := 0; i < len(a); i++ {
 		if !comparePubkeys(a[i].NodeID, b[i].NodeID) {
 			return fmt.Errorf("expected routeHint nodeID %x, "+
-				"got %x", a[i].NodeID, b[i].NodeID)
+				"got %x", a[i].NodeID.SerializeCompressed(), b[i].NodeID.SerializeCompressed())
 		}
 
 		if a[i].ChannelID != b[i].ChannelID {

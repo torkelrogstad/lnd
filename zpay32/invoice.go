@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/bech32"
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 const (
@@ -82,7 +82,7 @@ const (
 var (
 	// InvoiceFeatures holds the set of all known feature bits that are
 	// exposed as BOLT 11 features.
-	InvoiceFeatures = map[lnwire.FeatureBit]string{}
+	InvoiceFeatures = map[FeatureBit]string{}
 
 	// ErrInvoiceTooLarge is returned when an invoice exceeds maxInvoiceLength.
 	ErrInvoiceTooLarge = errors.New("invoice is too large")
@@ -108,7 +108,7 @@ type Invoice struct {
 
 	// MilliSat specifies the amount of this invoice in millisatoshi.
 	// Optional.
-	MilliSat *lnwire.MilliSatoshi
+	MilliSat *MilliSatoshi
 
 	// Timestamp specifies the time this invoice was created.
 	// Mandatory
@@ -168,12 +168,12 @@ type Invoice struct {
 
 	// Features represents an optional field used to signal optional or
 	// required support for features by the receiver.
-	Features *lnwire.FeatureVector
+	Features *FeatureVector
 }
 
 // Amount is a functional option that allows callers of NewInvoice to set the
 // amount in millisatoshis that the Invoice should encode.
-func Amount(milliSat lnwire.MilliSatoshi) func(*Invoice) {
+func Amount(milliSat MilliSatoshi) func(*Invoice) {
 	return func(i *Invoice) {
 		i.MilliSat = &milliSat
 	}
@@ -244,7 +244,7 @@ func RouteHint(routeHint []HopHint) func(*Invoice) {
 
 // Features is a functional option that allows callers of NewInvoice to set the
 // desired feature bits that are advertised on the invoice.
-func Features(features *lnwire.FeatureVector) func(*Invoice) {
+func Features(features *FeatureVector) func(*Invoice) {
 	return func(i *Invoice) {
 		i.Features = features
 	}
@@ -337,7 +337,7 @@ func Decode(invoice string, net *chaincfg.Params) (*Invoice, error) {
 	if err != nil {
 		return nil, err
 	}
-	var sig lnwire.Sig
+	var sig Sig
 	copy(sig[:], sigBase256[:64])
 	recoveryID := sigBase256[64]
 
@@ -368,8 +368,7 @@ func Decode(invoice string, net *chaincfg.Params) (*Invoice, error) {
 	} else {
 		headerByte := recoveryID + 27 + 4
 		compactSign := append([]byte{headerByte}, sig[:]...)
-		pubkey, _, err := btcec.RecoverCompact(btcec.S256(),
-			compactSign, hash)
+		pubkey, _, err := ecdsa.RecoverCompact(compactSign, hash)
 		if err != nil {
 			return nil, err
 		}
@@ -458,7 +457,7 @@ func (invoice *Invoice) Encode(signer MessageSigner) (string, error) {
 	// From the header byte we can extract the recovery ID, and the last 64
 	// bytes encode the signature.
 	recoveryID := sign[0] - 27 - 4
-	var sig lnwire.Sig
+	var sig Sig
 	copy(sig[:], sign[1:])
 
 	// If the pubkey field was explicitly set, it must be set to the pubkey
@@ -771,7 +770,7 @@ func parseDestination(data []byte) (*btcec.PublicKey, error) {
 		return nil, err
 	}
 
-	return btcec.ParsePubKey(base256Data, btcec.S256())
+	return btcec.ParsePubKey(base256Data)
 }
 
 // parseDescriptionHash converts a 256-bit description hash (encoded in base32)
@@ -894,7 +893,7 @@ func parseRouteHint(data []byte) ([]HopHint, error) {
 
 	for len(base256Data) > 0 {
 		hopHint := HopHint{}
-		hopHint.NodeID, err = btcec.ParsePubKey(base256Data[:33], btcec.S256())
+		hopHint.NodeID, err = btcec.ParsePubKey(base256Data[:33])
 		if err != nil {
 			return nil, err
 		}
@@ -913,14 +912,14 @@ func parseRouteHint(data []byte) ([]HopHint, error) {
 
 // parseFeatures decodes any feature bits directly from the base32
 // representation.
-func parseFeatures(data []byte) (*lnwire.FeatureVector, error) {
-	rawFeatures := lnwire.NewRawFeatureVector()
+func parseFeatures(data []byte) (*FeatureVector, error) {
+	rawFeatures := NewRawFeatureVector()
 	err := rawFeatures.DecodeBase32(bytes.NewReader(data), len(data))
 	if err != nil {
 		return nil, err
 	}
 
-	fv := lnwire.NewFeatureVector(rawFeatures, InvoiceFeatures)
+	fv := NewFeatureVector(rawFeatures, InvoiceFeatures)
 	unknownFeatures := fv.UnknownRequiredFeatures()
 	if len(unknownFeatures) > 0 {
 		return nil, fmt.Errorf("invoice contains unknown required "+

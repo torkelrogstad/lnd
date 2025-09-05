@@ -7,11 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/btcsuite/btcutil"
-	"github.com/btcsuite/btcutil/bech32"
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 // TestDecodeAmount ensures that the amount string in the hrp of the Invoice
@@ -22,7 +21,7 @@ func TestDecodeAmount(t *testing.T) {
 	tests := []struct {
 		amount string
 		valid  bool
-		result lnwire.MilliSatoshi
+		result MilliSatoshi
 	}{
 		{
 			amount: "",
@@ -146,7 +145,7 @@ func TestEncodeAmount(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		msat   lnwire.MilliSatoshi
+		msat   MilliSatoshi
 		valid  bool
 		result string
 	}{
@@ -452,7 +451,7 @@ func TestParseDestination(t *testing.T) {
 		if test.valid && !comparePubkeys(destination, test.result) {
 			t.Fatalf("test %d failed decoding destination: "+
 				"expected %x, got %x",
-				i, *test.result, *destination)
+				i, test.result.SerializeCompressed(), destination.SerializeCompressed())
 			return
 		}
 	}
