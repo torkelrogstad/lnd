@@ -3,14 +3,12 @@ package zpay32
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 var (
 	// toMSat is a map from a unit to a function that converts an amount
 	// of that unit to millisatoshis.
-	toMSat = map[byte]func(uint64) (lnwire.MilliSatoshi, error){
+	toMSat = map[byte]func(uint64) (MilliSatoshi, error){
 		'm': mBtcToMSat,
 		'u': uBtcToMSat,
 		'n': nBtcToMSat,
@@ -19,7 +17,7 @@ var (
 
 	// fromMSat is a map from a unit to a function that converts an amount
 	// in millisatoshis to an amount of that unit.
-	fromMSat = map[byte]func(lnwire.MilliSatoshi) (uint64, error){
+	fromMSat = map[byte]func(MilliSatoshi) (uint64, error){
 		'm': mSatToMBtc,
 		'u': mSatToUBtc,
 		'n': mSatToNBtc,
@@ -28,22 +26,22 @@ var (
 )
 
 // mBtcToMSat converts the given amount in milliBTC to millisatoshis.
-func mBtcToMSat(m uint64) (lnwire.MilliSatoshi, error) {
-	return lnwire.MilliSatoshi(m) * 100000000, nil
+func mBtcToMSat(m uint64) (MilliSatoshi, error) {
+	return MilliSatoshi(m) * 100000000, nil
 }
 
 // uBtcToMSat converts the given amount in microBTC to millisatoshis.
-func uBtcToMSat(u uint64) (lnwire.MilliSatoshi, error) {
-	return lnwire.MilliSatoshi(u * 100000), nil
+func uBtcToMSat(u uint64) (MilliSatoshi, error) {
+	return MilliSatoshi(u * 100000), nil
 }
 
 // nBtcToMSat converts the given amount in nanoBTC to millisatoshis.
-func nBtcToMSat(n uint64) (lnwire.MilliSatoshi, error) {
-	return lnwire.MilliSatoshi(n * 100), nil
+func nBtcToMSat(n uint64) (MilliSatoshi, error) {
+	return MilliSatoshi(n * 100), nil
 }
 
 // pBtcToMSat converts the given amount in picoBTC to millisatoshis.
-func pBtcToMSat(p uint64) (lnwire.MilliSatoshi, error) {
+func pBtcToMSat(p uint64) (MilliSatoshi, error) {
 	if p < 10 {
 		return 0, fmt.Errorf("minimum amount is 10p")
 	}
@@ -51,11 +49,11 @@ func pBtcToMSat(p uint64) (lnwire.MilliSatoshi, error) {
 		return 0, fmt.Errorf("amount %d pBTC not expressible in msat",
 			p)
 	}
-	return lnwire.MilliSatoshi(p / 10), nil
+	return MilliSatoshi(p / 10), nil
 }
 
 // mSatToMBtc converts the given amount in millisatoshis to milliBTC.
-func mSatToMBtc(msat lnwire.MilliSatoshi) (uint64, error) {
+func mSatToMBtc(msat MilliSatoshi) (uint64, error) {
 	if msat%100000000 != 0 {
 		return 0, fmt.Errorf("%d msat not expressible "+
 			"in mBTC", msat)
@@ -64,7 +62,7 @@ func mSatToMBtc(msat lnwire.MilliSatoshi) (uint64, error) {
 }
 
 // mSatToUBtc converts the given amount in millisatoshis to microBTC.
-func mSatToUBtc(msat lnwire.MilliSatoshi) (uint64, error) {
+func mSatToUBtc(msat MilliSatoshi) (uint64, error) {
 	if msat%100000 != 0 {
 		return 0, fmt.Errorf("%d msat not expressible "+
 			"in uBTC", msat)
@@ -73,7 +71,7 @@ func mSatToUBtc(msat lnwire.MilliSatoshi) (uint64, error) {
 }
 
 // mSatToNBtc converts the given amount in millisatoshis to nanoBTC.
-func mSatToNBtc(msat lnwire.MilliSatoshi) (uint64, error) {
+func mSatToNBtc(msat MilliSatoshi) (uint64, error) {
 	if msat%100 != 0 {
 		return 0, fmt.Errorf("%d msat not expressible in nBTC", msat)
 	}
@@ -81,13 +79,13 @@ func mSatToNBtc(msat lnwire.MilliSatoshi) (uint64, error) {
 }
 
 // mSatToPBtc converts the given amount in millisatoshis to picoBTC.
-func mSatToPBtc(msat lnwire.MilliSatoshi) (uint64, error) {
+func mSatToPBtc(msat MilliSatoshi) (uint64, error) {
 	return uint64(msat * 10), nil
 }
 
 // decodeAmount returns the amount encoded by the provided string in
 // millisatoshi.
-func decodeAmount(amount string) (lnwire.MilliSatoshi, error) {
+func decodeAmount(amount string) (MilliSatoshi, error) {
 	if len(amount) < 1 {
 		return 0, fmt.Errorf("amount must be non-empty")
 	}
@@ -101,7 +99,7 @@ func decodeAmount(amount string) (lnwire.MilliSatoshi, error) {
 		if err != nil {
 			return 0, err
 		}
-		return lnwire.MilliSatoshi(btc) * mSatPerBtc, nil
+		return MilliSatoshi(btc) * mSatPerBtc, nil
 	}
 
 	// If not a digit, it must be part of the known units.
@@ -126,7 +124,7 @@ func decodeAmount(amount string) (lnwire.MilliSatoshi, error) {
 
 // encodeAmount encodes the provided millisatoshi amount using as few characters
 // as possible.
-func encodeAmount(msat lnwire.MilliSatoshi) (string, error) {
+func encodeAmount(msat MilliSatoshi) (string, error) {
 	// If possible to express in BTC, that will always be the shortest
 	// representation.
 	if msat%mSatPerBtc == 0 {

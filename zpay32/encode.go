@@ -10,7 +10,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/lightningnetwork/lnd/fn/v2"
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 // Encode takes the given MessageSigner and returns a string encoding this
@@ -92,7 +91,7 @@ func (invoice *Invoice) Encode(signer MessageSigner) (string, error) {
 	// From the header byte we can extract the recovery ID, and the last 64
 	// bytes encode the signature.
 	recoveryID := sign[0] - 27 - 4
-	sig, err := lnwire.NewSigFromWireECDSA(sign[1:])
+	sig, err := NewSigFromWireECDSA(sign[1:])
 	if err != nil {
 		return "", err
 	}

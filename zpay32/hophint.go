@@ -2,7 +2,6 @@ package zpay32
 
 import (
 	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 const (
@@ -55,9 +54,9 @@ func (h HopHint) Copy() HopHint {
 // HopFee calculates the fee for a given amount that is forwarded over a hop.
 // The amount has to be denoted in milli satoshi. The returned fee is also
 // denoted in milli satoshi.
-func (h HopHint) HopFee(amt lnwire.MilliSatoshi) lnwire.MilliSatoshi {
-	baseFee := lnwire.MilliSatoshi(h.FeeBaseMSat)
-	feeRate := lnwire.MilliSatoshi(h.FeeProportionalMillionths)
+func (h HopHint) HopFee(amt MilliSatoshi) MilliSatoshi {
+	baseFee := MilliSatoshi(h.FeeBaseMSat)
+	feeRate := MilliSatoshi(h.FeeProportionalMillionths)
 
 	return baseFee + (amt*feeRate)/feeRateParts
 }

@@ -18,16 +18,15 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	sphinx "github.com/lightningnetwork/lightning-onion"
 	"github.com/lightningnetwork/lnd/fn/v2"
-	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	testMillisat24BTC    = lnwire.MilliSatoshi(2400000000000)
-	testMillisat2500uBTC = lnwire.MilliSatoshi(250000000)
-	testMillisat25mBTC   = lnwire.MilliSatoshi(2500000000)
-	testMillisat20mBTC   = lnwire.MilliSatoshi(2000000000)
-	testMillisat10mBTC   = lnwire.MilliSatoshi(1000000000)
+	testMillisat24BTC    = MilliSatoshi(2400000000000)
+	testMillisat2500uBTC = MilliSatoshi(250000000)
+	testMillisat25mBTC   = MilliSatoshi(2500000000)
+	testMillisat20mBTC   = MilliSatoshi(2000000000)
+	testMillisat10mBTC   = MilliSatoshi(1000000000)
 
 	testPaymentHash = [32]byte{
 		0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -110,7 +109,7 @@ var (
 		},
 	}
 
-	emptyFeatures = lnwire.NewFeatureVector(nil, lnwire.Features)
+	emptyFeatures = NewFeatureVector(nil, AllFeatures)
 
 	// Must be initialized in init().
 	testDescriptionHash [32]byte
@@ -134,7 +133,7 @@ var (
 		CltvExpiryDelta:             130,
 		HTLCMinMsat:                 2,
 		HTLCMaxMsat:                 100,
-		Features:                    lnwire.EmptyFeatureVector(),
+		Features:                    EmptyFeatureVector(),
 		FirstEphemeralBlindingPoint: testBlindedHopPK1,
 		Hops: []*sphinx.BlindedHopInfo{
 			{
@@ -161,7 +160,7 @@ var (
 		CltvExpiryDelta:             10,
 		HTLCMinMsat:                 0,
 		HTLCMaxMsat:                 10,
-		Features:                    lnwire.EmptyFeatureVector(),
+		Features:                    EmptyFeatureVector(),
 		FirstEphemeralBlindingPoint: testBlindedHopPK4,
 		Hops: []*sphinx.BlindedHopInfo{
 			{
@@ -562,9 +561,9 @@ func TestDecodeEncode(t *testing.T) {
 					PaymentAddr: fn.Some(specPaymentAddr),
 					Description: &testCoffeeBeans,
 					Destination: testPubKey,
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(9, 15, 99),
-						lnwire.Features,
+					Features: NewFeatureVector(
+						NewRawFeatureVector(9, 15, 99),
+						AllFeatures,
 					),
 				}
 			},
@@ -589,9 +588,9 @@ func TestDecodeEncode(t *testing.T) {
 					PaymentAddr: fn.Some(specPaymentAddr),
 					Description: &testCoffeeBeans,
 					Destination: testPubKey,
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(9, 15, 99, 100),
-						lnwire.Features,
+					Features: NewFeatureVector(
+						NewRawFeatureVector(9, 15, 99, 100),
+						AllFeatures,
 					),
 				}
 			},
@@ -716,9 +715,9 @@ func TestDecodeEncode(t *testing.T) {
 					Description: &testPaymentMetadata,
 					Destination: testPubKey,
 					PaymentAddr: fn.Some(specPaymentAddr),
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(8, 14, 48),
-						lnwire.Features,
+					Features: NewFeatureVector(
+						NewRawFeatureVector(8, 14, 48),
+						AllFeatures,
 					),
 					Metadata: []byte{0x01, 0xfa, 0xfa, 0xf0},
 				}
@@ -772,16 +771,16 @@ func TestDecodeEncode(t *testing.T) {
 					PaymentAddr: fn.Some(specPaymentAddr),
 					Description: &testCoffeeBeans,
 					Destination: testPubKey,
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(
+					Features: NewFeatureVector(
+						NewRawFeatureVector(
 							9, 15, 99, 100,
 						),
-						lnwire.Features,
+						AllFeatures,
 					),
 				}
 			},
 			decodeOpts: []DecodeOption{
-				WithKnownFeatureBits(map[lnwire.FeatureBit]string{
+				WithKnownFeatureBits(map[FeatureBit]string{
 					9:  "9",
 					15: "15",
 					99: "99",
@@ -803,16 +802,16 @@ func TestDecodeEncode(t *testing.T) {
 					PaymentAddr: fn.Some(specPaymentAddr),
 					Description: &testCoffeeBeans,
 					Destination: testPubKey,
-					Features: lnwire.NewFeatureVector(
-						lnwire.NewRawFeatureVector(
+					Features: NewFeatureVector(
+						NewRawFeatureVector(
 							9, 15, 99, 100,
 						),
-						lnwire.Features,
+						AllFeatures,
 					),
 				}
 			},
 			decodeOpts: []DecodeOption{
-				WithKnownFeatureBits(map[lnwire.FeatureBit]string{
+				WithKnownFeatureBits(map[FeatureBit]string{
 					9:  "9",
 					15: "15",
 					99: "99",

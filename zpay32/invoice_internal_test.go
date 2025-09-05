@@ -11,7 +11,6 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/bech32"
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +22,7 @@ func TestDecodeAmount(t *testing.T) {
 	tests := []struct {
 		amount string
 		valid  bool
-		result lnwire.MilliSatoshi
+		result MilliSatoshi
 	}{
 		{
 			amount: "",
@@ -147,7 +146,7 @@ func TestEncodeAmount(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		msat   lnwire.MilliSatoshi
+		msat   MilliSatoshi
 		valid  bool
 		result string
 	}{

@@ -15,7 +15,6 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/lightningnetwork/lnd/fn/v2"
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 // DecodeOption is a type that can be used to supply functional options to the
@@ -25,7 +24,7 @@ type DecodeOption func(*decodeOptions)
 // WithKnownFeatureBits is a functional option that overwrites the set of
 // known feature bits. If not set, then LND's lnwire.Features variable will be
 // used by default.
-func WithKnownFeatureBits(features map[lnwire.FeatureBit]string) DecodeOption {
+func WithKnownFeatureBits(features map[FeatureBit]string) DecodeOption {
 	return func(options *decodeOptions) {
 		options.knownFeatureBits = features
 	}
@@ -42,14 +41,14 @@ func WithErrorOnUnknownFeatureBit() DecodeOption {
 
 // decodeOptions holds the set of Decode options.
 type decodeOptions struct {
-	knownFeatureBits      map[lnwire.FeatureBit]string
+	knownFeatureBits      map[FeatureBit]string
 	errorOnUnknownFeature bool
 }
 
 // newDecodeOptions constructs the default decodeOptions struct.
 func newDecodeOptions() *decodeOptions {
 	return &decodeOptions{
-		knownFeatureBits:      lnwire.Features,
+		knownFeatureBits:      AllFeatures,
 		errorOnUnknownFeature: false,
 	}
 }
@@ -135,7 +134,7 @@ func Decode(invoice string, net *chaincfg.Params, opts ...DecodeOption) (
 	if err != nil {
 		return nil, err
 	}
-	sig, err := lnwire.NewSigFromWireECDSA(sigBase256[:64])
+	sig, err := NewSigFromWireECDSA(sigBase256[:64])
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +176,7 @@ func Decode(invoice string, net *chaincfg.Params, opts ...DecodeOption) (
 
 	// If no feature vector was decoded, populate an empty one.
 	if decodedInvoice.Features == nil {
-		decodedInvoice.Features = lnwire.NewFeatureVector(
+		decodedInvoice.Features = NewFeatureVector(
 			nil, options.knownFeatureBits,
 		)
 	}
@@ -603,14 +602,14 @@ func parseBlindedPaymentPath(data []byte) (*BlindedPaymentPath, error) {
 
 // parseFeatures decodes any feature bits directly from the base32
 // representation.
-func parseFeatures(data []byte) (*lnwire.FeatureVector, error) {
-	rawFeatures := lnwire.NewRawFeatureVector()
+func parseFeatures(data []byte) (*FeatureVector, error) {
+	rawFeatures := NewRawFeatureVector()
 	err := rawFeatures.DecodeBase32(bytes.NewReader(data), len(data))
 	if err != nil {
 		return nil, err
 	}
 
-	return lnwire.NewFeatureVector(rawFeatures, lnwire.Features), nil
+	return NewFeatureVector(rawFeatures, AllFeatures), nil
 }
 
 // base32ToUint64 converts a base32 encoded number to uint64.

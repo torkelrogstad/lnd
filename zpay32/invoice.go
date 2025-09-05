@@ -9,7 +9,6 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/lightningnetwork/lnd/fn/v2"
-	"github.com/lightningnetwork/lnd/lnwire"
 )
 
 const (
@@ -92,6 +91,10 @@ const (
 )
 
 var (
+	// InvoiceFeatures holds the set of all known feature bits that are
+	// exposed as BOLT 11 features.
+	InvoiceFeatures = map[FeatureBit]string{}
+
 	// ErrInvoiceTooLarge is returned when an invoice exceeds
 	// maxInvoiceLength.
 	ErrInvoiceTooLarge = errors.New("invoice is too large")
@@ -125,7 +128,7 @@ type Invoice struct {
 
 	// MilliSat specifies the amount of this invoice in millisatoshi.
 	// Optional.
-	MilliSat *lnwire.MilliSatoshi
+	MilliSat *MilliSatoshi
 
 	// Timestamp specifies the time this invoice was created.
 	// Mandatory
@@ -202,7 +205,7 @@ type Invoice struct {
 
 	// Features represents an optional field used to signal optional or
 	// required support for features by the receiver.
-	Features *lnwire.FeatureVector
+	Features *FeatureVector
 
 	// Metadata is additional data that is sent along with the payment to
 	// the payee.
@@ -211,7 +214,7 @@ type Invoice struct {
 
 // Amount is a functional option that allows callers of NewInvoice to set the
 // amount in millisatoshis that the Invoice should encode.
-func Amount(milliSat lnwire.MilliSatoshi) func(*Invoice) {
+func Amount(milliSat MilliSatoshi) func(*Invoice) {
 	return func(i *Invoice) {
 		i.MilliSat = &milliSat
 	}
@@ -292,7 +295,7 @@ func WithBlindedPaymentPath(p *BlindedPaymentPath) func(*Invoice) {
 // Features is a functional option that allows callers of NewInvoice to set the
 // desired feature bits that are advertised on the invoice. If this option is
 // not used, an empty feature vector will automatically be populated.
-func Features(features *lnwire.FeatureVector) func(*Invoice) {
+func Features(features *FeatureVector) func(*Invoice) {
 	return func(i *Invoice) {
 		i.Features = features
 	}
@@ -334,8 +337,8 @@ func NewInvoice(net *chaincfg.Params, paymentHash [32]byte,
 
 	// If no features were set, we'll populate an empty feature vector.
 	if invoice.Features == nil {
-		invoice.Features = lnwire.NewFeatureVector(
-			nil, lnwire.Features,
+		invoice.Features = NewFeatureVector(
+			nil, AllFeatures,
 		)
 	}
 

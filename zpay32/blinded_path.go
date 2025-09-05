@@ -7,7 +7,6 @@ import (
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	sphinx "github.com/lightningnetwork/lightning-onion"
-	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/lightningnetwork/lnd/tlv"
 )
 
@@ -55,7 +54,7 @@ type BlindedPaymentPath struct {
 	HTLCMaxMsat uint64
 
 	// Features is the feature bit vector for the path.
-	Features *lnwire.FeatureVector
+	Features *FeatureVector
 
 	// FirstEphemeralBlindingPoint is the blinding point to send to the
 	// introduction node. It will be used by the introduction node to derive
@@ -97,7 +96,7 @@ func DecodeBlindedPayment(r io.Reader) (*BlindedPaymentPath, error) {
 	}
 
 	// Parse the feature bit vector.
-	f := lnwire.EmptyFeatureVector()
+	f := EmptyFeatureVector()
 	err = f.Decode(r)
 	if err != nil {
 		return nil, err
