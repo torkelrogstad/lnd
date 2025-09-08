@@ -201,12 +201,14 @@ func writeTaggedFields(bufferBase32 *bytes.Buffer, invoice *Invoice) error {
 		var version byte
 		switch addr := invoice.FallbackAddr.(type) {
 		case *address.AddressPubKeyHash:
-			version = 17
+			version = fallbackVersionPubkeyHash
 		case *address.AddressScriptHash:
-			version = 18
+			version = fallbackVersionScriptHash
 		case *address.AddressWitnessPubKeyHash:
 			version = addr.WitnessVersion()
 		case *address.AddressWitnessScriptHash:
+			version = addr.WitnessVersion()
+		case *address.AddressTaproot:
 			version = addr.WitnessVersion()
 		default:
 			return fmt.Errorf("unknown fallback address type")
