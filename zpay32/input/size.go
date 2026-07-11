@@ -1,9 +1,8 @@
 package input
 
 import (
-	"github.com/btcsuite/btcd/blockchain"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcd/txscript/v2"
+	"github.com/btcsuite/btcd/wire/v2"
 	"github.com/btcsuite/btcwallet/waddrmgr"
 	"github.com/torkelrogstad/lnd/zpay32/lntypes"
 )
@@ -11,9 +10,11 @@ import (
 const (
 	// witnessScaleFactor determines the level of "discount" witness data
 	// receives compared to "base" data. A scale factor of 4, denotes that
-	// witness data is 1/4 as cheap as regular non-witness data. Value copied
-	// here for convenience.
-	witnessScaleFactor = blockchain.WitnessScaleFactor
+	// witness data is 1/4 as cheap as regular non-witness data. This is the
+	// consensus constant from BIP-141 (blockchain.WitnessScaleFactor in
+	// btcd), inlined here to avoid depending on the btcd main module for a
+	// single constant.
+	witnessScaleFactor = 4
 
 	// The weight(weight), which is different from the !size! (see BIP-141),
 	// is calculated as:

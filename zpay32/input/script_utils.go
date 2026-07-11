@@ -6,14 +6,14 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/btcsuite/btcd/address/v2"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr/musig2"
-	"github.com/btcsuite/btcd/btcutil"
-	"github.com/btcsuite/btcd/chaincfg/chainhash"
-	"github.com/btcsuite/btcd/txscript"
-	"github.com/btcsuite/btcd/wire"
+	"github.com/btcsuite/btcd/chainhash/v2"
+	"github.com/btcsuite/btcd/txscript/v2"
+	"github.com/btcsuite/btcd/wire/v2"
 	"github.com/lightningnetwork/lnd/fn/v2"
 	"github.com/torkelrogstad/lnd/zpay32/lntypes"
 	"github.com/torkelrogstad/lnd/zpay32/lnutils"
@@ -102,7 +102,7 @@ func WitnessPubKeyHash(pubkey []byte) ([]byte, error) {
 	)
 
 	bldr.AddOp(txscript.OP_0)
-	pkhash := btcutil.Hash160(pubkey)
+	pkhash := address.Hash160(pubkey)
 	bldr.AddData(pkhash)
 	return bldr.Script()
 }
@@ -115,7 +115,7 @@ func GenerateP2SH(script []byte) ([]byte, error) {
 	)
 
 	bldr.AddOp(txscript.OP_HASH160)
-	scripthash := btcutil.Hash160(script)
+	scripthash := address.Hash160(script)
 	bldr.AddData(scripthash)
 	bldr.AddOp(txscript.OP_EQUAL)
 	return bldr.Script()
@@ -130,7 +130,7 @@ func GenerateP2PKH(pubkey []byte) ([]byte, error) {
 
 	bldr.AddOp(txscript.OP_DUP)
 	bldr.AddOp(txscript.OP_HASH160)
-	pkhash := btcutil.Hash160(pubkey)
+	pkhash := address.Hash160(pubkey)
 	bldr.AddData(pkhash)
 	bldr.AddOp(txscript.OP_EQUALVERIFY)
 	bldr.AddOp(txscript.OP_CHECKSIG)
@@ -348,7 +348,7 @@ func SenderHTLCScript(senderHtlcKey, receiverHtlcKey,
 	// the stack.
 	builder.AddOp(txscript.OP_DUP)
 	builder.AddOp(txscript.OP_HASH160)
-	builder.AddData(btcutil.Hash160(revocationKey.SerializeCompressed()))
+	builder.AddData(address.Hash160(revocationKey.SerializeCompressed()))
 	builder.AddOp(txscript.OP_EQUAL)
 
 	// If the hash matches, then this is the revocation clause. The output
@@ -997,7 +997,7 @@ func ReceiverHTLCScript(cltvExpiry uint32, senderHtlcKey,
 	// the stack.
 	builder.AddOp(txscript.OP_DUP)
 	builder.AddOp(txscript.OP_HASH160)
-	builder.AddData(btcutil.Hash160(revocationKey.SerializeCompressed()))
+	builder.AddData(address.Hash160(revocationKey.SerializeCompressed()))
 	builder.AddOp(txscript.OP_EQUAL)
 
 	// If the hash matches, then this is the revocation clause. The output
@@ -2581,7 +2581,7 @@ func CommitScriptUnencumbered(key *btcec.PublicKey) ([]byte, error) {
 		P2WPKHSize,
 	))
 	builder.AddOp(txscript.OP_0)
-	builder.AddData(btcutil.Hash160(key.SerializeCompressed()))
+	builder.AddData(address.Hash160(key.SerializeCompressed()))
 
 	return builder.Script()
 }
