@@ -4,11 +4,22 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/lightningnetwork/lnd/tlv"
-	"github.com/torkelrogstad/lnd/zpay32/input"
 )
+
+// Signature is an interface for objects that can populate signatures during
+// witness construction.
+type Signature interface {
+	// Serialize returns a DER-encoded ECDSA signature.
+	Serialize() []byte
+
+	// Verify return true if the ECDSA signature is valid for the passed
+	// message digest under the provided public key.
+	Verify([]byte, *btcec.PublicKey) bool
+}
 
 var (
 	errSigTooShort = errors.New("malformed signature: too short")
@@ -45,8 +56,8 @@ type Sig struct {
 
 // ForceSchnorr forces the signature to be interpreted as a schnorr signature.
 // This is useful when reading an HTLC sig off the wire for a taproot channel.
-// In this case, in order to obtain an input.Signature, we need to know that
-// the sig is a schnorr sig.
+// In this case, in order to obtain a Signature, we need to know that the sig
+// is a schnorr sig.
 func (s *Sig) ForceSchnorr() {
 	s.sigType = sigTypeSchnorr
 }
@@ -182,7 +193,7 @@ func NewSigFromSchnorrRawSignature(sig []byte) (Sig, error) {
 
 // NewSigFromSignature creates a new signature as used on the wire, from an
 // existing ecdsa.Signature or schnorr.Signature.
-func NewSigFromSignature(e input.Signature) (Sig, error) {
+func NewSigFromSignature(e Signature) (Sig, error) {
 	if e == nil {
 		return Sig{}, fmt.Errorf("cannot decode empty signature")
 	}
@@ -210,9 +221,9 @@ func NewSigFromSignature(e input.Signature) (Sig, error) {
 	}
 }
 
-// ToSignature converts the fixed-sized signature to a input.Signature which
-// can be used for signature validation checks.
-func (s *Sig) ToSignature() (input.Signature, error) {
+// ToSignature converts the fixed-sized signature to a Signature which can be
+// used for signature validation checks.
+func (s *Sig) ToSignature() (Signature, error) {
 	switch s.sigType {
 	case sigTypeSchnorr:
 		return schnorr.ParseSignature(s.bytes[:])
